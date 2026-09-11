@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج جمعيتي - إدارة وتتبع المدفوعات</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --bg: #f8f9fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        input, button, select {
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        input[type="number"], input[type="text"] {
+            flex: 1;
+            min-width: 150px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #666; }
+        .stat-card p { margin: 0; font-size: 20px; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #e9ecef;
+        }
+        .status-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .paid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .unpaid {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .btn-delete {
+            background-color: var(--danger);
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🤝 برنامج إدارة الجمعية الشهري</h1>
+
+    <!-- إعدادات الجمعية -->
+    <div class="card">
+        <h2>إعدادات الجمعية</h2>
+        <div class="form-group">
+            <input type="number" id="shareValue" placeholder="قيمة السهم الشهري (مثلاً 1000)" onchange="updateApp()">
+            <input type="text" id="memberName" placeholder="اسم العضو">
+            <input type="number" id="memberShares" placeholder="عدد الأسهم (مثلاً 1)" min="0.5" step="0.5">
+            <button onclick="addMember()">إضافة عضو</button>
+        </div>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>إجمالي المبلغ الشهري</h3>
+            <p id="totalAmount">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>المبلغ المحصل</h3>
+            <p id="collectedAmount" style="color: var(--success)">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>المبلغ المتبقي</h3>
+            <p id="remainingAmount" style="color: var(--danger)">0</p>
+        </div>
+    </div>
+
+    <!-- جدول الأعضاء -->
+    <div class="card">
+        <h2>جدول المتابعة والسداد</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم العضو</th>
+                    <th>عدد الأسهم</th>
+                    <th>المبلغ المطلوب</th>
+                    <th>حالة السداد</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="membersTable">
+                <!-- سيتم ملء البيانات هنا -->
+            </tbody>
+        </table>
+        <br>
+        <button onclick="resetPayments()" style="background-color: #6c757d;">إعادة ضبط السداد للشهر الجديد</button>
+    </div>
+</div>
+
+<script>
+    let members = JSON.parse(localStorage.getItem('gam3eya_members')) || [];
+    let shareValue = localStorage.getItem('gam3eya_share_value') || 0;
+
+    document.getElementById('shareValue').value = shareValue || '';
+
+    function saveAndRender() {
+        localStorage.setItem('gam3eya_members', JSON.stringify(members));
+        localStorage.setItem('gam3eya_share_value', shareValue);
+        render();
+    }
+
+    function addMember() {
+        const nameInput = document.getElementById('memberName');
+        const sharesInput = document.getElementById('memberShares');
+        const name = nameInput.value.trim();
+        const shares = parseFloat(sharesInput.value);
+
+        if (!name || isNaN(shares) || shares <= 0) {
+            alert('برجاء إدخال اسم العضو وعدد الأسهم بشكل صحيح');
+            return;
+        }
+
+        members.push({ id: Date.now(), name, shares, paid: false });
+        nameInput.value = '';
+        sharesInput.value = '';
+        saveAndRender();
+    }
+
+    function togglePaid(id) {
+        members = members.map(m => m.id === id ? { ...m, paid: !m.paid } : m);
+        saveAndRender();
+    }
+
+    function deleteMember(id) {
+        if (confirm('هل أنت تأكد من حذف هذا العضو؟')) {
+            members = members.filter(m => m.id !== id);
+            saveAndRender();
+        }
+    }
+
+    function resetPayments() {
+        if (confirm('هل تريد إعادة ضبط حالة الدفع لجميع الأعضاء لشهر جديد؟')) {
+            members = members.map(m => ({ ...m, paid: false }));
+            saveAndRender();
+        }
+    }
+
+    function render() {
+        shareValue = parseFloat(document.getElementById('shareValue').value) || 0;
+        const tbody = document.getElementById('membersTable');
+        tbody.innerHTML = '';
+
+        let totalCollected = 0;
+        let totalExpected = 0;
+
+        members.forEach((m, index) => {
+            const amount = m.shares * shareValue;
+            totalExpected += amount;
+            if (m.paid) totalCollected += amount;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${m.name}</strong></td>
+                <td>${m.shares}</td>
+                <td>${amount.toLocaleString()}</td>
+                <td>
+                    <button class="status-btn ${m.paid ? 'paid' : 'unpaid'}" onclick="togglePaid(${m.id})">
+                        ${m.paid ? 'تم الدفع  ✓' : 'لم يدفع  ✕'}
+                    </button>
+                </td>
+                <td>
+                    <button class="btn-delete" onclick="deleteMember(${m.id})">حذف</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('totalAmount').innerText = totalExpected.toLocaleString() + ' ';
+        document.getElementById('collectedAmount').innerText = totalCollected.toLocaleString() + ' ';
+        document.getElementById('remainingAmount').innerText = (totalExpected - totalCollected).toLocaleString() + ' ';
+    }
+
+    function updateApp() {
+        saveAndRender();
+    }
+
+    // التشغيل الأول
+    render();
+</script>
+
+</body>
+</html>
