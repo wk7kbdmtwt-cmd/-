@@ -9,17 +9,18 @@
             --primary: #007bff;
             --success: #28a745;
             --danger: #dc3545;
+            --whatsapp: #25d366;
             --bg: #f8f9fa;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             color: #333;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         h1, h2 {
@@ -40,14 +41,14 @@
             margin-bottom: 15px;
         }
         input, button, select {
-            padding: 10px 15px;
+            padding: 10px 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
         }
-        input[type="number"], input[type="text"] {
+        input[type="number"], input[type="text"], input[type="tel"] {
             flex: 1;
-            min-width: 150px;
+            min-width: 140px;
         }
         button {
             background-color: var(--primary);
@@ -61,7 +62,7 @@
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -71,26 +72,31 @@
             border-radius: 8px;
             text-align: center;
         }
-        .stat-card h3 { margin: 0 0 5px 0; font-size: 14px; color: #666; }
-        .stat-card p { margin: 0; font-size: 20px; font-weight: bold; }
+        .stat-card h3 { margin: 0 0 5px 0; font-size: 13px; color: #666; }
+        .stat-card p { margin: 0; font-size: 18px; font-weight: bold; }
+        .table-responsive {
+            overflow-x: auto;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            min-width: 750px;
         }
         th, td {
             border: 1px solid #dee2e6;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
+            font-size: 14px;
         }
         th {
             background-color: #e9ecef;
         }
         .status-btn {
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 5px 10px;
+            border-radius: 15px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
         }
         .paid {
             background-color: #d4edda;
@@ -102,9 +108,18 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .btn-whatsapp {
+            background-color: var(--whatsapp);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
         .btn-delete {
             background-color: var(--danger);
-            padding: 5px 10px;
+            padding: 5px 8px;
             font-size: 12px;
         }
     </style>
@@ -112,15 +127,17 @@
 <body>
 
 <div class="container">
-    <h1>🤝 برنامج إدارة الجمعية الشهري</h1>
+    <h1>🤝 برنامج إدارة الجمعية وتذكير الواتساب</h1>
 
     <!-- إعدادات الجمعية -->
     <div class="card">
-        <h2>إعدادات الجمعية</h2>
+        <h2>إعدادات الجمعية وإضافة الأعضاء</h2>
         <div class="form-group">
-            <input type="number" id="shareValue" placeholder="قيمة السهم الشهري (مثلاً 1000)" onchange="updateApp()">
+            <input type="number" id="shareValue" placeholder="قيمة السهم الشهري" onchange="updateApp()">
             <input type="text" id="memberName" placeholder="اسم العضو">
-            <input type="number" id="memberShares" placeholder="عدد الأسهم (مثلاً 1)" min="0.5" step="0.5">
+            <input type="tel" id="memberPhone" placeholder="رقم الواتساب (مثال: 010xxxxxxxx)">
+            <input type="number" id="memberShares" placeholder="عدد الأسهم" min="0.5" step="0.5">
+            <input type="text" id="payoutMonth" placeholder="شهر القبض (مثال: شهر 1 / يناير)">
             <button onclick="addMember()">إضافة عضو</button>
         </div>
     </div>
@@ -143,53 +160,80 @@
 
     <!-- جدول الأعضاء -->
     <div class="card">
-        <h2>جدول المتابعة والسداد</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>اسم العضو</th>
-                    <th>عدد الأسهم</th>
-                    <th>المبلغ المطلوب</th>
-                    <th>حالة السداد</th>
-                    <th>إجراء</th>
-                </tr>
-            </thead>
-            <tbody id="membersTable">
-                <!-- سيتم ملء البيانات هنا -->
-            </tbody>
-        </table>
+        <h2>جدول المتابعة وسداد الجمعية</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم العضو</th>
+                        <th>عدد الأسهم</th>
+                        <th>شهر القبض</th>
+                        <th>المبلغ المطلوب</th>
+                        <th>حالة السداد</th>
+                        <th>تذكير واتساب</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="membersTable">
+                    <!-- البيانات تُملأ آلياً -->
+                </tbody>
+            </table>
+        </div>
         <br>
         <button onclick="resetPayments()" style="background-color: #6c757d;">إعادة ضبط السداد للشهر الجديد</button>
     </div>
 </div>
 
 <script>
-    let members = JSON.parse(localStorage.getItem('gam3eya_members')) || [];
-    let shareValue = localStorage.getItem('gam3eya_share_value') || 0;
+    let members = JSON.parse(localStorage.getItem('gam3eya_members_v2')) || [];
+    let shareValue = localStorage.getItem('gam3eya_share_value_v2') || 0;
 
     document.getElementById('shareValue').value = shareValue || '';
 
     function saveAndRender() {
-        localStorage.setItem('gam3eya_members', JSON.stringify(members));
-        localStorage.setItem('gam3eya_share_value', shareValue);
+        localStorage.setItem('gam3eya_members_v2', JSON.stringify(members));
+        localStorage.setItem('gam3eya_share_value_v2', shareValue);
         render();
+    }
+
+    function formatPhoneNumber(phone) {
+        let cleaned = phone.replace(/\D/g, '');
+        if (cleaned.startsWith('0')) {
+            cleaned = '2' + cleaned; // إضافة كود مصر افتراضياً إذا بدأ بـ 0
+        }
+        return cleaned;
     }
 
     function addMember() {
         const nameInput = document.getElementById('memberName');
+        const phoneInput = document.getElementById('memberPhone');
         const sharesInput = document.getElementById('memberShares');
+        const monthInput = document.getElementById('payoutMonth');
+
         const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
         const shares = parseFloat(sharesInput.value);
+        const payoutMonth = monthInput.value.trim() || 'غير محدد';
 
         if (!name || isNaN(shares) || shares <= 0) {
             alert('برجاء إدخال اسم العضو وعدد الأسهم بشكل صحيح');
             return;
         }
 
-        members.push({ id: Date.now(), name, shares, paid: false });
+        members.push({ 
+            id: Date.now(), 
+            name, 
+            phone, 
+            shares, 
+            payoutMonth, 
+            paid: false 
+        });
+
         nameInput.value = '';
+        phoneInput.value = '';
         sharesInput.value = '';
+        monthInput.value = '';
         saveAndRender();
     }
 
@@ -212,6 +256,26 @@
         }
     }
 
+    function sendWhatsAppReminder(id) {
+        const member = members.find(m => m.id === id);
+        if (!member) return;
+
+        if (!member.phone) {
+            alert('لم يتم تسجيل رقم واتساب لهذا العضو');
+            return;
+        }
+
+        const formattedPhone = formatPhoneNumber(member.phone);
+        const amount = member.shares * shareValue;
+        
+        const message = `السلام عليكم أستاذ/ة ${member.name} 🌹\nنود تذكيرك بموعد قسط الجمعية الشهري.\n\n▫️ عدد الأسهم: ${member.shares}\n▫️ المبلغ المطلوب: ${amount.toLocaleString()} جنيه\n▫️ موعد استلامك للجمعية: ${member.payoutMonth}\n\nبرجاء السداد في أقرب وقت. وشكراً جزيلاً لك!`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+        
+        window.open(whatsappUrl, '_blank');
+    }
+
     function render() {
         shareValue = parseFloat(document.getElementById('shareValue').value) || 0;
         const tbody = document.getElementById('membersTable');
@@ -230,11 +294,15 @@
                 <td>${index + 1}</td>
                 <td><strong>${m.name}</strong></td>
                 <td>${m.shares}</td>
+                <td><span style="color:#007bff; font-weight:bold;">${m.payoutMonth}</span></td>
                 <td>${amount.toLocaleString()}</td>
                 <td>
                     <button class="status-btn ${m.paid ? 'paid' : 'unpaid'}" onclick="togglePaid(${m.id})">
-                        ${m.paid ? 'تم الدفع  ✓' : 'لم يدفع  ✕'}
+                        ${m.paid ? 'تم الدفع ✓' : 'لم يدفع ✕'}
                     </button>
+                </td>
+                <td>
+                    <button class="btn-whatsapp" onclick="sendWhatsAppReminder(${m.id})">تذكير واتساب 💬</button>
                 </td>
                 <td>
                     <button class="btn-delete" onclick="deleteMember(${m.id})">حذف</button>
@@ -252,10 +320,8 @@
         saveAndRender();
     }
 
-    // التشغيل الأول
     render();
 </script>
 
 </body>
 </html>
-
