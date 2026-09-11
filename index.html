@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>برنامج جمعيتي - إدارة وتتبع المدفوعات</title>
+    <title>برنامج جمعيتي - إعداد م / محمد عبدالوهاب القزاز</title>
     <style>
         :root {
             --primary: #007bff;
@@ -18,14 +18,26 @@
             margin: 0;
             padding: 15px;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         .container {
             max-width: 1100px;
             margin: 0 auto;
+            flex: 1;
         }
         h1, h2 {
             text-align: center;
             color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .owner-header {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
         }
         .card {
             background: #fff;
@@ -40,7 +52,7 @@
             flex-wrap: wrap;
             margin-bottom: 15px;
         }
-        input, button, select {
+        input, button {
             padding: 10px 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
@@ -81,7 +93,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            min-width: 750px;
+            min-width: 850px;
         }
         th, td {
             border: 1px solid #dee2e6;
@@ -122,54 +134,72 @@
             padding: 5px 8px;
             font-size: 12px;
         }
+        footer {
+            text-align: center;
+            padding: 15px;
+            margin-top: 30px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            font-weight: bold;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🤝 برنامج إدارة الجمعية وتذكير الواتساب</h1>
+    <h1>🤝 برنامج إدارة الجمعية وتتبع المدفوعات</h1>
+    <div class="owner-header" id="ownerDisplay">إدارة: -</div>
 
-    <!-- إعدادات الجمعية -->
+    <!-- إعدادات الجمعية وصاحب الجمعية -->
     <div class="card">
-        <h2>إعدادات الجمعية وإضافة الأعضاء</h2>
+        <h2>بيانات الجمعية والإدارة</h2>
         <div class="form-group">
+            <input type="text" id="ownerName" placeholder="اسم صاحب / مسؤول الجمعية" onchange="updateApp()">
             <input type="number" id="shareValue" placeholder="قيمة السهم الشهري" onchange="updateApp()">
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        <h2>إضافة أعضاء جدد</h2>
+        <div class="form-group">
             <input type="text" id="memberName" placeholder="اسم العضو">
             <input type="tel" id="memberPhone" placeholder="رقم الواتساب (مثال: 010xxxxxxxx)">
             <input type="number" id="memberShares" placeholder="عدد الأسهم" min="0.5" step="0.5">
-            <input type="text" id="payoutMonth" placeholder="شهر القبض (مثال: شهر 1 / يناير)">
+            <input type="text" id="payoutMonth" placeholder="شهر القبض (مثال: شهر 1)">
             <button onclick="addMember()">إضافة عضو</button>
         </div>
     </div>
 
-    <!-- الإحصائيات -->
+    <!-- الإحصائيات العامة -->
     <div class="stats-grid">
         <div class="stat-card">
-            <h3>إجمالي المبلغ الشهري</h3>
+            <h3>إجمالي المطلوب شهرياً</h3>
             <p id="totalAmount">0</p>
         </div>
         <div class="stat-card">
-            <h3>المبلغ المحصل</h3>
+            <h3>إجمالي المحصل (المدفوع)</h3>
             <p id="collectedAmount" style="color: var(--success)">0</p>
         </div>
         <div class="stat-card">
-            <h3>المبلغ المتبقي</h3>
+            <h3>إجمالي المتبقي</h3>
             <p id="remainingAmount" style="color: var(--danger)">0</p>
         </div>
     </div>
 
     <!-- جدول الأعضاء -->
     <div class="card">
-        <h2>جدول المتابعة وسداد الجمعية</h2>
+        <h2>جدول متابعة مدفوعات الأعضاء</h2>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>اسم العضو</th>
-                        <th>عدد الأسهم</th>
+                        <th>الأسهم</th>
                         <th>شهر القبض</th>
                         <th>المبلغ المطلوب</th>
+                        <th>المدفوع</th>
+                        <th>المتبقي</th>
                         <th>حالة السداد</th>
                         <th>تذكير واتساب</th>
                         <th>إجراء</th>
@@ -185,22 +215,33 @@
     </div>
 </div>
 
+<footer>
+    تصميم وتطوير البرنامج: م / محمد عبدالوهاب القزاز ✨
+</footer>
+
 <script>
-    let members = JSON.parse(localStorage.getItem('gam3eya_members_v2')) || [];
-    let shareValue = localStorage.getItem('gam3eya_share_value_v2') || 0;
+    let members = JSON.parse(localStorage.getItem('gam3eya_members_v5')) || [];
+    let shareValue = localStorage.getItem('gam3eya_share_value_v5') || 0;
+    let ownerName = localStorage.getItem('gam3eya_owner_name_v5') || '';
 
     document.getElementById('shareValue').value = shareValue || '';
+    document.getElementById('ownerName').value = ownerName || '';
 
     function saveAndRender() {
-        localStorage.setItem('gam3eya_members_v2', JSON.stringify(members));
-        localStorage.setItem('gam3eya_share_value_v2', shareValue);
+        ownerName = document.getElementById('ownerName').value.trim();
+        shareValue = parseFloat(document.getElementById('shareValue').value) || 0;
+
+        localStorage.setItem('gam3eya_members_v5', JSON.stringify(members));
+        localStorage.setItem('gam3eya_share_value_v5', shareValue);
+        localStorage.setItem('gam3eya_owner_name_v5', ownerName);
+
         render();
     }
 
     function formatPhoneNumber(phone) {
         let cleaned = phone.replace(/\D/g, '');
         if (cleaned.startsWith('0')) {
-            cleaned = '2' + cleaned; // إضافة كود مصر افتراضياً إذا بدأ بـ 0
+            cleaned = '2' + cleaned;
         }
         return cleaned;
     }
@@ -266,9 +307,12 @@
         }
 
         const formattedPhone = formatPhoneNumber(member.phone);
-        const amount = member.shares * shareValue;
-        
-        const message = `السلام عليكم أستاذ/ة ${member.name} 🌹\nنود تذكيرك بموعد قسط الجمعية الشهري.\n\n▫️ عدد الأسهم: ${member.shares}\n▫️ المبلغ المطلوب: ${amount.toLocaleString()} جنيه\n▫️ موعد استلامك للجمعية: ${member.payoutMonth}\n\nبرجاء السداد في أقرب وقت. وشكراً جزيلاً لك!`;
+        const totalAmount = member.shares * shareValue;
+        const paidAmount = member.paid ? totalAmount : 0;
+        const remainingAmount = totalAmount - paidAmount;
+        const ownerInfo = ownerName ? `مسؤول الجمعية: ${ownerName}` : '';
+
+        let message = `السلام عليكم أستاذ/ة ${member.name} 🌹\nنود تذكيرك بموعد قسط الجمعية الشهري.\n\n▫️ عدد الأسهم: ${member.shares}\n▫️ إجمالي القسط: ${totalAmount.toLocaleString()} جنيه\n▫️ المدفوع: ${paidAmount.toLocaleString()} جنيه\n▫️ المتبقي عليك: ${remainingAmount.toLocaleString()} جنيه\n▫️ موعد استلامك للجمعية: ${member.payoutMonth}\n\nبرجاء السداد في أقرب وقت. وشكراً جزيلاً لك!\n${ownerInfo}`;
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
@@ -277,7 +321,8 @@
     }
 
     function render() {
-        shareValue = parseFloat(document.getElementById('shareValue').value) || 0;
+        document.getElementById('ownerDisplay').innerText = ownerName ? `إدارة المسؤول: ${ownerName}` : 'إدارة الجمعية';
+        
         const tbody = document.getElementById('membersTable');
         tbody.innerHTML = '';
 
@@ -285,9 +330,12 @@
         let totalExpected = 0;
 
         members.forEach((m, index) => {
-            const amount = m.shares * shareValue;
-            totalExpected += amount;
-            if (m.paid) totalCollected += amount;
+            const required = m.shares * shareValue;
+            const paid = m.paid ? required : 0;
+            const remaining = required - paid;
+
+            totalExpected += required;
+            totalCollected += paid;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -295,10 +343,12 @@
                 <td><strong>${m.name}</strong></td>
                 <td>${m.shares}</td>
                 <td><span style="color:#007bff; font-weight:bold;">${m.payoutMonth}</span></td>
-                <td>${amount.toLocaleString()}</td>
+                <td>${required.toLocaleString()}</td>
+                <td style="color: var(--success); font-weight: bold;">${paid.toLocaleString()}</td>
+                <td style="color: ${remaining > 0 ? 'var(--danger)' : '#28a745'}; font-weight: bold;">${remaining.toLocaleString()}</td>
                 <td>
                     <button class="status-btn ${m.paid ? 'paid' : 'unpaid'}" onclick="togglePaid(${m.id})">
-                        ${m.paid ? 'تم الدفع ✓' : 'لم يدفع ✕'}
+                        ${m.paid ? 'خالص ✓' : 'لم يدفع ✕'}
                     </button>
                 </td>
                 <td>
